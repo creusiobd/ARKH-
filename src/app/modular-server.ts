@@ -4,6 +4,7 @@ import { registerOpportunityRoutes } from "../modules/opportunities/routes/oppor
 import { registerSystemRoutes } from "../modules/system/routes/system-routes";
 import { registerObservabilityRoutes } from "../modules/observability/routes/observability-routes";
 import { registerSecurityRoutes } from "../modules/security/routes/security-routes";
+import { registerRadarRoutes } from "../modules/radar/routes/radar-routes";
 
 /**
  * New modular entrypoint.
@@ -17,6 +18,7 @@ export function buildModularApp() {
   registerSystemRoutes(app);
   registerObservabilityRoutes(app);
   registerSecurityRoutes(app);
+  registerRadarRoutes(app);
   registerOpportunityRoutes(app);
   return app;
 }
