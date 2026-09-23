@@ -1,0 +1,6 @@
+{
+  "name": "ARKHÉ Revenue Radar SaaS",
+  "description": "Infraestrutura privada de geração de receita (Agentic Revenue Engine) em 3 frentes: oportunidades profissionais SRE, fábrica de produtos intelectuais e radar comercial ARKHÉ, com pipeline CRM e migração PostgreSQL.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

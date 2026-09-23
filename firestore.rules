@@ -1,0 +1,101 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default-deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Connection testing endpoint required by Firebase SDK health-check
+    match /test/{docId} {
+      allow read: if true;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidUserProfile(data) {
+      return data.keys().hasAll(['id', 'email', 'createdAt']) &&
+             data.keys().hasOnly(['id', 'email', 'displayName', 'photoURL', 'createdAt']) &&
+             data.id is string && data.id == request.auth.uid &&
+             data.email is string && data.email.size() <= 256 &&
+             (!('displayName' in data) || (data.displayName is string && data.displayName.size() <= 128)) &&
+             (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 512)) &&
+             data.createdAt is string && data.createdAt.size() <= 64;
+    }
+
+    function isValidWorkspace(data, userId) {
+      return data.keys().hasAll(['id', 'name', 'ownerId', 'tier']) &&
+             data.keys().hasOnly(['id', 'name', 'niche', 'tier', 'creditsUsed', 'creditLimit', 'webhookUrl', 'ownerId', 'createdAt', 'updatedAt']) &&
+             data.id is string && data.id.size() <= 128 &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 128 &&
+             data.ownerId is string && data.ownerId == userId &&
+             data.tier is string && data.tier.size() <= 64 &&
+             (!('niche' in data) || (data.niche is string && data.niche.size() <= 128)) &&
+             (!('creditsUsed' in data) || (data.creditsUsed is number && data.creditsUsed >= 0)) &&
+             (!('creditLimit' in data) || (data.creditLimit is number && data.creditLimit >= 0)) &&
+             (!('webhookUrl' in data) || (data.webhookUrl is string && data.webhookUrl.size() <= 512));
+    }
+
+    function isValidOpportunity(data, userId, workspaceId) {
+      return data.keys().hasAll(['id', 'url', 'oportunidade', 'ownerId', 'workspaceId']) &&
+             data.keys().hasOnly(['id', 'url', 'oportunidade', 'fonte', 'tipo', 'aderencia', 'nota', 'estado', 'tags', 'valorEstimado', 'contatoCargo', 'proximaAcao', 'resultado', 'workspaceId', 'ownerId', 'createdAt', 'updatedAt']) &&
+             data.id is string && data.id.size() <= 128 &&
+             data.url is string && data.url.size() <= 512 &&
+             data.oportunidade is string && data.oportunidade.size() <= 256 &&
+             data.ownerId is string && data.ownerId == userId &&
+             data.workspaceId is string && data.workspaceId == workspaceId &&
+             (!('fonte' in data) || (data.fonte is string && data.fonte.size() <= 128)) &&
+             (!('tipo' in data) || (data.tipo is string && data.tipo.size() <= 64)) &&
+             (!('estado' in data) || (data.estado is string && data.estado.size() <= 64)) &&
+             (!('tags' in data) || (data.tags is string && data.tags.size() <= 256)) &&
+             (!('aderencia' in data) || data.aderencia is number) &&
+             (!('nota' in data) || data.nota is number) &&
+             (!('valorEstimado' in data) || data.valorEstimado is number) &&
+             (!('contatoCargo' in data) || (data.contatoCargo is string && data.contatoCargo.size() <= 128)) &&
+             (!('proximaAcao' in data) || (data.proximaAcao is string && data.proximaAcao.size() <= 256)) &&
+             (!('resultado' in data) || (data.resultado is string && data.resultado.size() <= 256));
+    }
+
+    // User Profile
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUserProfile(incoming());
+      allow update: if isOwner(userId) && isValidUserProfile(incoming()) && incoming().id == existing().id;
+      allow delete: if false;
+
+      // Workspaces belonging strictly to user
+      match /workspaces/{workspaceId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidWorkspace(incoming(), userId) && incoming().id == workspaceId;
+        allow update: if isOwner(userId) && isValidWorkspace(incoming(), userId) && incoming().id == existing().id && incoming().ownerId == existing().ownerId;
+        allow delete: if isOwner(userId);
+
+        // Opportunities inside user's workspace
+        match /opportunities/{opportunityId} {
+          allow get, list: if isOwner(userId);
+          allow create: if isOwner(userId) && isValidOpportunity(incoming(), userId, workspaceId) && incoming().id == opportunityId;
+          allow update: if isOwner(userId) && isValidOpportunity(incoming(), userId, workspaceId) && incoming().id == existing().id && incoming().ownerId == existing().ownerId;
+          allow delete: if isOwner(userId);
+        }
+      }
+    }
+  }
+}
