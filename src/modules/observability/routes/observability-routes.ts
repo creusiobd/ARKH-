@@ -1,14 +1,17 @@
 import { Router } from "express";
-import {
-  getObservabilitySummaryController,
-  getObservabilityMetricsController,
-} from "../controller/observability-controller";
+import { createObservabilityController } from "../controller/observability-controller";
+import type { ObservabilityRegistryLike } from "../domain/observability";
 
-export function registerObservabilityRoutes(app: { use: (path: string, router: Router) => void }) {
+export function registerObservabilityRoutes(
+  app: { use: (path: string, router: Router) => void },
+  registry: ObservabilityRegistryLike,
+) {
   const router = Router();
+  const controller = createObservabilityController(registry);
 
-  router.get("/summary", getObservabilitySummaryController);
-  router.get("/metrics", getObservabilityMetricsController);
+  router.get("/summary", controller.getSummary);
+  router.get("/metrics", controller.getMetrics);
+  router.post("/pgbouncer/test", controller.testDbPoolTransaction);
 
   app.use("/api/v2/observability", router);
 }
