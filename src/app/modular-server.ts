@@ -5,27 +5,7 @@ import { registerSystemRoutes } from "../modules/system/routes/system-routes";
 import { registerSecurityRoutes } from "../modules/security/routes/security-routes";
 import { registerRadarRoutes } from "../modules/radar/routes/radar-routes";
 import { registerObservabilityRoutes } from "../modules/observability/routes/observability-routes";
-
-const legacyObservabilityRegistry = {
-  async getSummary() {
-    return {
-      status: "ok",
-      requests: 0,
-      errors: 0,
-      latencyMs: 0,
-      timestamp: new Date().toISOString(),
-    };
-  },
-  async getPrometheusMetrics() {
-    return "# metrics unavailable in bootstrap mode\n";
-  },
-  async testDbPoolTransaction() {
-    return {
-      success: true,
-      note: "Legacy registry adapter is active in modular bootstrap mode.",
-    };
-  },
-};
+import { createLegacyObservabilityRegistry } from "../modules/observability/adapters/legacy-observability-registry";
 
 /**
  * New modular entrypoint.
@@ -35,6 +15,8 @@ const legacyObservabilityRegistry = {
  */
 export function buildModularApp() {
   const app = createApp();
+  const legacyObservabilityRegistry = createLegacyObservabilityRegistry();
+
   registerAppRoutes(app);
   registerSystemRoutes(app);
   registerSecurityRoutes(app);
