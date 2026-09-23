@@ -1,0 +1,74 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile registered upon login",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 256 },
+        "displayName": { "type": "string", "maxLength": 128 },
+        "photoURL": { "type": "string", "maxLength": 512 },
+        "createdAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "email", "createdAt"]
+    },
+    "Workspace": {
+      "title": "Workspace",
+      "description": "Private isolated workspace belonging to an authenticated user",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 128 },
+        "niche": { "type": "string", "maxLength": 128 },
+        "tier": { "type": "string", "maxLength": 64 },
+        "creditsUsed": { "type": "number" },
+        "creditLimit": { "type": "number" },
+        "webhookUrl": { "type": "string", "maxLength": 512 },
+        "ownerId": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "maxLength": 64 },
+        "updatedAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "name", "ownerId", "tier"]
+    },
+    "Opportunity": {
+      "title": "Opportunity",
+      "description": "SRE or reliability lead opportunity tracked within a workspace",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "url": { "type": "string", "maxLength": 512 },
+        "oportunidade": { "type": "string", "maxLength": 256 },
+        "fonte": { "type": "string", "maxLength": 128 },
+        "tipo": { "type": "string", "maxLength": 64 },
+        "aderencia": { "type": "number" },
+        "nota": { "type": "number" },
+        "estado": { "type": "string", "maxLength": 64 },
+        "tags": { "type": "string", "maxLength": 256 },
+        "valorEstimado": { "type": "number" },
+        "contatoCargo": { "type": "string", "maxLength": 128 },
+        "proximaAcao": { "type": "string", "maxLength": 256 },
+        "resultado": { "type": "string", "maxLength": 256 },
+        "workspaceId": { "type": "string", "maxLength": 128 },
+        "ownerId": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string", "maxLength": 64 },
+        "updatedAt": { "type": "string", "maxLength": 64 }
+      },
+      "required": ["id", "url", "oportunidade", "ownerId", "workspaceId"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Stores user profile data accessible strictly by the user"
+    },
+    "/users/{userId}/workspaces/{workspaceId}": {
+      "schema": "Workspace",
+      "description": "Stores workspaces created and owned by the specific user"
+    },
+    "/users/{userId}/workspaces/{workspaceId}/opportunities/{opportunityId}": {
+      "schema": "Opportunity",
+      "description": "Stores leads and opportunities in the user's workspace"
+    }
+  }
+}
